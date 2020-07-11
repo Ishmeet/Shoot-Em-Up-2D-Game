@@ -24,6 +24,7 @@ var emptyImage [MAXBOXES]*ebiten.Image
 
 type box struct {
 	x0, y0, w, h int
+	cw, ch       int
 }
 
 type click struct {
@@ -106,9 +107,6 @@ func (g *Game) Update(screen *ebiten.Image) error {
 
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		g.c.x, g.c.y = ebiten.CursorPosition()
-		if g.clickedInsideBox() != 0 {
-
-		}
 	}
 
 	return nil
@@ -117,23 +115,19 @@ func (g *Game) Update(screen *ebiten.Image) error {
 // Draw ...
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{0x80, 0xa0, 0xc0, 0xff})
-
+	msg := fmt.Sprintf("%d,%d", g.x, g.y)
 	op := ebiten.DrawImageOptions{}
 	for i := 0; i < len(g.b); i++ {
 		op.GeoM.Reset()
 		op.ColorM.Reset()
-		op.GeoM.Scale(float64(g.b[i].w), float64(g.b[i].h))
+		g.enemyMovingDown(i)
+		op.GeoM.Scale(float64(g.b[i].w), float64(g.b[i].ch))
 		op.GeoM.Translate(float64(g.b[i].x0), float64(g.b[i].y0))
-		switch g.insideBox() {
-		case 0:
+		if i == g.clickedInsideBox() {
+			msg = msg + " " + fmt.Sprintf("%d", i)
+			g.enemyReset(i)
 			op.ColorM.Scale(0x00, 153, 0x0, 100)
-		case 1:
-			op.ColorM.Scale(0x00, 153, 0x0, 100)
-		case 2:
-			op.ColorM.Scale(0x00, 153, 0x0, 100)
-		case 3:
-			op.ColorM.Scale(0x00, 153, 0x0, 100)
-		default:
+		} else {
 			op.ColorM.Scale(0xFF, 0x0, 0x0, 0xFF)
 		}
 		screen.DrawImage(emptyImage[i], &op)
@@ -145,7 +139,24 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	op.GeoM.Translate(float64(g.x-w/2), float64(g.y-h/2))
 	screen.DrawImage(crossHair, &op)
 
-	ebitenutil.DebugPrint(screen, fmt.Sprintf("%d,%d", g.x, g.y))
+	ebitenutil.DebugPrint(screen, msg)
+}
+
+func (g *Game) enemyMovingDown(i int) {
+	if g.b[i].ch <= g.b[i].h {
+		g.b[i].ch++
+	}
+}
+
+func (g *Game) enemyMovingUp(i int) {
+	g.b[i].h = -g.b[i].h
+	if g.b[i].ch > g.b[i].h {
+		g.b[i].ch--
+	}
+}
+
+func (g *Game) enemyReset(i int) {
+	g.b[i].ch = 0
 }
 
 // Layout ...
