@@ -22,6 +22,7 @@ const (
 
 var crossHair *ebiten.Image
 var emptyImage [MAXBOXES]*ebiten.Image
+var healthBar *ebiten.Image
 
 type box struct {
 	x0, y0, w, h int
@@ -47,12 +48,14 @@ func init() {
 		emptyImage[i], _ = ebiten.NewImage(1, 1, ebiten.FilterDefault)
 		emptyImage[i].Fill(color.RGBA{0xFF, 0, 0, 0x01})
 	}
+	healthBar, _ = ebiten.NewImage(1, 1, ebiten.FilterDefault)
+	healthBar.Fill(color.RGBA{0xFF, 0, 0, 0x01})
 }
 
 // NewGame ...
 func NewGame() *Game {
 	g := &Game{}
-	g.health = 5
+	g.health = 100
 
 	g.b[0].x0 = 100
 	g.b[0].y0 = 100
@@ -143,6 +146,13 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	op.GeoM.Translate(float64(g.x-w/2), float64(g.y-h/2))
 	screen.DrawImage(crossHair, &op)
 
+	op.GeoM.Reset()
+	op.ColorM.Reset()
+	op.GeoM.Scale(float64(g.health), 20)
+	op.GeoM.Translate((screenWidth/2)-50, 20)
+	op.ColorM.Scale(0x00, 0xFF, 0x0, 0xDD)
+	screen.DrawImage(healthBar, &op)
+
 	ebitenutil.DebugPrint(screen, msg)
 }
 
@@ -166,6 +176,7 @@ func (g *Game) enemyReset(i int) {
 func (g *Game) timer() {
 	for next := range time.Tick(time.Second) {
 		fmt.Println("next", next, g.health)
+		g.health -= 20
 	}
 }
 
