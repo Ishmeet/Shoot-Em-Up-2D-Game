@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image/color"
 	_ "image/jpeg"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/ebitenutil"
 
@@ -33,10 +34,11 @@ type click struct {
 
 // Game ...
 type Game struct {
-	x int
-	y int
-	b [MAXBOXES]box
-	c click
+	x      int
+	y      int
+	b      [MAXBOXES]box
+	c      click
+	health int
 }
 
 func init() {
@@ -50,6 +52,8 @@ func init() {
 // NewGame ...
 func NewGame() *Game {
 	g := &Game{}
+	g.health = 5
+
 	g.b[0].x0 = 100
 	g.b[0].y0 = 100
 	g.b[0].w = 50
@@ -159,6 +163,12 @@ func (g *Game) enemyReset(i int) {
 	g.b[i].ch = 0
 }
 
+func (g *Game) timer() {
+	for next := range time.Tick(time.Second) {
+		fmt.Println("next", next, g.health)
+	}
+}
+
 // Layout ...
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 	return screenWidth, screenHeight
@@ -168,7 +178,9 @@ func main() {
 	ebiten.SetWindowTitle("Shoot em up")
 	ebiten.SetWindowSize(screenWidth, screenHeight)
 	ebiten.SetCursorMode(ebiten.CursorModeHidden)
-	if err := ebiten.RunGame(NewGame()); err != nil {
+	g := NewGame()
+	go g.timer()
+	if err := ebiten.RunGame(g); err != nil {
 		panic(err)
 	}
 }
