@@ -25,8 +25,11 @@ var emptyImage [MAXBOXES]*ebiten.Image
 var healthBar *ebiten.Image
 
 type box struct {
-	x0, y0, w, h int
-	cw, ch       int
+	x0, y0, w, h  int
+	cw, ch        int
+	alive         bool
+	staydeadTimer int
+	aliveTimer    int
 }
 
 type click struct {
@@ -127,12 +130,11 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	for i := 0; i < len(g.b); i++ {
 		op.GeoM.Reset()
 		op.ColorM.Reset()
-		g.enemyMovingDown(i)
-		op.GeoM.Scale(float64(g.b[i].w), float64(g.b[i].ch))
+		op.GeoM.Scale(float64(g.b[i].w), float64(g.b[i].h))
 		op.GeoM.Translate(float64(g.b[i].x0), float64(g.b[i].y0))
 		if i == g.clickedInsideBox() {
 			msg = msg + " " + fmt.Sprintf("%d", i)
-			g.enemyReset(i)
+			g.enemyKilled(i)
 			op.ColorM.Scale(0x00, 153, 0x0, 100)
 		} else {
 			op.ColorM.Scale(0xFF, 0x0, 0x0, 0xFF)
@@ -150,7 +152,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	op.ColorM.Reset()
 	op.GeoM.Scale(float64(g.health), 20)
 	op.GeoM.Translate((screenWidth/2)-50, 20)
-	op.ColorM.Scale(0x00, 0xFF, 0x0, 0xDD)
+	op.ColorM.Scale(0x00, 0xFF, 0x00, 0xAA)
 	screen.DrawImage(healthBar, &op)
 
 	ebitenutil.DebugPrint(screen, msg)
@@ -169,14 +171,42 @@ func (g *Game) enemyMovingUp(i int) {
 	}
 }
 
-func (g *Game) enemyReset(i int) {
-	g.b[i].ch = 0
+func (g *Game) enemyRespawn(i int) {
+	g.b[i].h = 50
+	g.b[i].w = 50
+	g.b[i].alive = true
+}
+
+func (g *Game) enemyKilled(i int) {
+	g.b[i].h = 0
+	g.b[i].w = 0
+	g.b[i].alive = false
+	g.c.x = 0
+	g.c.y = 0
 }
 
 func (g *Game) timer() {
-	for next := range time.Tick(time.Second) {
-		fmt.Println("next", next, g.health)
-		g.health -= 20
+	for range time.Tick(time.Second) {
+		for i := 0; i < len(g.b); i++ {
+			if !g.b[i].alive {
+				if g.b[i].staydeadTimer >= 3 {
+					g.enemyRespawn(i)
+					g.b[i].staydeadTimer = 0
+				}
+				g.b[i].staydeadTimer++
+				// Reset alive timer here
+				g.b[i].aliveTimer = 0
+			} else {
+				if g.b[i].aliveTimer >= 3 {
+					g.health -= 20
+					if g.health <= 0 {
+						g.health = 0
+					}
+					g.b[i].aliveTimer = 0
+				}
+				g.b[i].aliveTimer++
+			}
+		}
 	}
 }
 
