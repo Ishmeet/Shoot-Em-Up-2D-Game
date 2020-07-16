@@ -17,7 +17,7 @@ const (
 	screenWidth  = 640
 	screenHeight = 480
 	// MAXBOXES no. of boxes...
-	MAXBOXES = 4
+	MAXBOXES = 6
 )
 
 var crossHair *ebiten.Image
@@ -31,6 +31,7 @@ type box struct {
 	alive         bool
 	staydeadTimer int
 	aliveTimer    int
+	shoot         bool
 }
 
 type click struct {
@@ -84,8 +85,19 @@ func NewGame() *Game {
 	g.b[3].w = 50
 	g.b[3].h = 50
 
+	g.b[4].x0 = 350
+	g.b[4].y0 = 250
+	g.b[4].w = 50
+	g.b[4].h = 50
+
+	g.b[5].x0 = 450
+	g.b[5].y0 = 100
+	g.b[5].w = 50
+	g.b[5].h = 50
+
 	for i := 0; i < len(g.b); i++ {
 		g.b[i].alive = true
+		g.b[i].shoot = false
 	}
 	return g
 }
@@ -148,6 +160,10 @@ func (g *Game) Draw(screen *ebiten.Image) {
 			} else {
 				// op.ColorM.Scale(0xFF, 0x0, 0x0, 0xFF)
 			}
+			if g.b[i].shoot {
+				op.ColorM.Scale(0xFF, 0xFF, 0x0, 100)
+				g.b[i].shoot = false
+			}
 			screen.DrawImage(enemy1[i], &op)
 		}
 	}
@@ -181,6 +197,14 @@ func (g *Game) enemyMovingUp(i int) {
 	}
 }
 
+func (g *Game) youGotShot(i int) {
+	g.health -= 20
+	if g.health <= 0 {
+		g.health = 0
+	}
+	g.b[i].shoot = true
+}
+
 func (g *Game) enemyRespawn(i int) {
 	g.b[i].h = 50
 	g.b[i].w = 50
@@ -208,10 +232,7 @@ func (g *Game) timer() {
 				g.b[i].aliveTimer = 0
 			} else {
 				if g.b[i].aliveTimer >= 3 {
-					g.health -= 20
-					if g.health <= 0 {
-						g.health = 0
-					}
+					g.youGotShot(i)
 					g.b[i].aliveTimer = 0
 				}
 				g.b[i].aliveTimer++
