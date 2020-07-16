@@ -23,6 +23,7 @@ const (
 var crossHair *ebiten.Image
 var emptyImage [MAXBOXES]*ebiten.Image
 var healthBar *ebiten.Image
+var enemy1 [MAXBOXES]*ebiten.Image
 
 type box struct {
 	x0, y0, w, h  int
@@ -47,6 +48,9 @@ type Game struct {
 
 func init() {
 	crossHair, _, _ = ebitenutil.NewImageFromFile("crosshair.png", ebiten.FilterDefault)
+	for i := 0; i < len(enemy1); i++ {
+		enemy1[i], _, _ = ebitenutil.NewImageFromFile("enemy1_50_50.png", ebiten.FilterDefault)
+	}
 	for i := 0; i < len(emptyImage); i++ {
 		emptyImage[i], _ = ebiten.NewImage(1, 1, ebiten.FilterDefault)
 		emptyImage[i].Fill(color.RGBA{0xFF, 0, 0, 0x01})
@@ -79,6 +83,10 @@ func NewGame() *Game {
 	g.b[3].y0 = 300
 	g.b[3].w = 50
 	g.b[3].h = 50
+
+	for i := 0; i < len(g.b); i++ {
+		g.b[i].alive = true
+	}
 	return g
 }
 
@@ -128,18 +136,20 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	msg := fmt.Sprintf("%d,%d", g.x, g.y)
 	op := ebiten.DrawImageOptions{}
 	for i := 0; i < len(g.b); i++ {
-		op.GeoM.Reset()
-		op.ColorM.Reset()
-		op.GeoM.Scale(float64(g.b[i].w), float64(g.b[i].h))
-		op.GeoM.Translate(float64(g.b[i].x0), float64(g.b[i].y0))
-		if i == g.clickedInsideBox() {
-			msg = msg + " " + fmt.Sprintf("%d", i)
-			g.enemyKilled(i)
-			op.ColorM.Scale(0x00, 153, 0x0, 100)
-		} else {
-			op.ColorM.Scale(0xFF, 0x0, 0x0, 0xFF)
+		if g.b[i].alive {
+			op.GeoM.Reset()
+			op.ColorM.Reset()
+			op.GeoM.Translate(float64(g.b[i].x0), float64(g.b[i].y0))
+			if i == g.clickedInsideBox() {
+				msg = msg + " " + fmt.Sprintf("%d", i)
+				g.enemyKilled(i)
+				op.ColorM.Scale(0xFF, 0x0, 0x0, 0xFF)
+				// op.ColorM.Scale(0x00, 153, 0x0, 100)
+			} else {
+				// op.ColorM.Scale(0xFF, 0x0, 0x0, 0xFF)
+			}
+			screen.DrawImage(enemy1[i], &op)
 		}
-		screen.DrawImage(emptyImage[i], &op)
 	}
 
 	op.GeoM.Reset()
