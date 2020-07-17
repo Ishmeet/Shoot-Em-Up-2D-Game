@@ -24,6 +24,7 @@ var crossHair *ebiten.Image
 var emptyImage [MAXBOXES]*ebiten.Image
 var healthBar *ebiten.Image
 var enemy1 [MAXBOXES]*ebiten.Image
+var backgroundImage *ebiten.Image
 
 type box struct {
 	x0, y0, w, h  int
@@ -49,6 +50,7 @@ type Game struct {
 
 func init() {
 	crossHair, _, _ = ebitenutil.NewImageFromFile("crosshair.png", ebiten.FilterDefault)
+	backgroundImage, _, _ = ebitenutil.NewImageFromFile("old-western-town.jpg", ebiten.FilterDefault)
 	for i := 0; i < len(enemy1); i++ {
 		switch i {
 		case 0:
@@ -78,33 +80,33 @@ func NewGame() *Game {
 	g := &Game{}
 	g.health = 100
 
-	g.b[0].x0 = 100
-	g.b[0].y0 = 100
+	g.b[0].x0 = 74
+	g.b[0].y0 = 216
 	g.b[0].w = 50
 	g.b[0].h = 50
 
-	g.b[1].x0 = 300
-	g.b[1].y0 = 100
+	g.b[1].x0 = 157
+	g.b[1].y0 = 186
 	g.b[1].w = 50
 	g.b[1].h = 50
 
-	g.b[2].x0 = 200
-	g.b[2].y0 = 200
+	g.b[2].x0 = 242
+	g.b[2].y0 = 162
 	g.b[2].w = 50
 	g.b[2].h = 50
 
-	g.b[3].x0 = 250
-	g.b[3].y0 = 300
+	g.b[3].x0 = 379
+	g.b[3].y0 = 158
 	g.b[3].w = 50
 	g.b[3].h = 50
 
-	g.b[4].x0 = 350
-	g.b[4].y0 = 250
+	g.b[4].x0 = 473
+	g.b[4].y0 = 183
 	g.b[4].w = 50
 	g.b[4].h = 50
 
-	g.b[5].x0 = 450
-	g.b[5].y0 = 100
+	g.b[5].x0 = 569
+	g.b[5].y0 = 225
 	g.b[5].w = 50
 	g.b[5].h = 50
 
@@ -157,9 +159,13 @@ func (g *Game) Update(screen *ebiten.Image) error {
 
 // Draw ...
 func (g *Game) Draw(screen *ebiten.Image) {
-	screen.Fill(color.RGBA{0x80, 0xa0, 0xc0, 0xff})
+	// screen.Fill(color.RGBA{0x80, 0xa0, 0xc0, 0xff})
 	msg := fmt.Sprintf("%d,%d", g.x, g.y)
 	op := ebiten.DrawImageOptions{}
+	op.GeoM.Reset()
+	op.ColorM.Reset()
+	screen.DrawImage(backgroundImage, &op)
+
 	for i := 0; i < len(g.b); i++ {
 		if g.b[i].alive {
 			op.GeoM.Reset()
