@@ -50,7 +50,20 @@ type Game struct {
 func init() {
 	crossHair, _, _ = ebitenutil.NewImageFromFile("crosshair.png", ebiten.FilterDefault)
 	for i := 0; i < len(enemy1); i++ {
-		enemy1[i], _, _ = ebitenutil.NewImageFromFile("enemy1_50_50.png", ebiten.FilterDefault)
+		switch i {
+		case 0:
+			enemy1[i], _, _ = ebitenutil.NewImageFromFile("enemy1_50_50.png", ebiten.FilterDefault)
+		case 1:
+			enemy1[i], _, _ = ebitenutil.NewImageFromFile("enemy6.png", ebiten.FilterDefault)
+		case 2:
+			enemy1[i], _, _ = ebitenutil.NewImageFromFile("enemy4.png", ebiten.FilterDefault)
+		case 3:
+			enemy1[i], _, _ = ebitenutil.NewImageFromFile("enemy6.png", ebiten.FilterDefault)
+		case 4:
+			enemy1[i], _, _ = ebitenutil.NewImageFromFile("enemy1_50_50.png", ebiten.FilterDefault)
+		case 5:
+			enemy1[i], _, _ = ebitenutil.NewImageFromFile("enemy4.png", ebiten.FilterDefault)
+		}
 	}
 	for i := 0; i < len(emptyImage); i++ {
 		emptyImage[i], _ = ebiten.NewImage(1, 1, ebiten.FilterDefault)
@@ -178,7 +191,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	op.ColorM.Reset()
 	op.GeoM.Scale(float64(g.health), 20)
 	op.GeoM.Translate((screenWidth/2)-50, 20)
-	op.ColorM.Scale(0x00, 0xFF, 0x00, 0xAA)
+	op.ColorM.Scale(0xFF, 0x00, 0x00, 0xFF)
 	screen.DrawImage(healthBar, &op)
 
 	ebitenutil.DebugPrint(screen, msg)
